@@ -22,7 +22,6 @@
       color: white;
       overflow: hidden;
     }
-
     #message {
       font-size: 4.5rem;
       text-align: center;
@@ -31,14 +30,12 @@
       text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
       margin-bottom: 40px;
     }
-
     @keyframes fadeInOut {
       0%   { opacity: 0; }
       10%  { opacity: 1; }
       90%  { opacity: 1; }
       100% { opacity: 0; }
     }
-
     .fade {
       animation-name: fadeInOut;
       animation-fill-mode: forwards;
@@ -51,29 +48,30 @@
 
   <script>
     const texts = [
-      "Eyyy alam nya HAHAHAHAHS",
-      "anyways",
-      "parang boring noh",
-      "walang music",
-      "so",
-      "mag play muna tayo ng fav songs mo",
-      "😊🎶",
-      "para hindi boring HAHAHS",
-      "okk pili ka nalang ng song na gusto mo",
-      "enjoyyy!"
+      "Welcome",
+      "...",
+      "listen to some music muna",
+      "and",
+      "please continue."
     ];
 
-    const durations = [2500, 1800, 2000, 2000, 1500, 3500, 2000, 2500, 3000, 3500];
+    // Adjusted delays for smooth pacing
+    const durations = [
+      2500, // Welcome
+      1500, // ...
+      4000, // listen to some music muna
+      2000, // and
+      3500  // please continue.
+    ];
 
     const messageEl = document.getElementById("message");
     let index = 0;
 
     function showNextMessage() {
       if (index >= texts.length) {
-        //  Redirect to musicplayer.html after the final message
         setTimeout(() => {
           window.location.href = "musicplayer.html";
-        }, 1000); // delay buffer after last message fades
+        }, 1000);
         return;
       }
 
@@ -91,7 +89,7 @@
     }
 
     window.onload = () => {
-      setTimeout(showNextMessage, 1000); // delay before first message
+      setTimeout(showNextMessage, 1000);
     };
   </script>
 </body>
