@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>It's been a year!</title>
+  <title>Special Day</title>
   <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet" />
   <style>
     * {
@@ -22,49 +22,42 @@
       color: white;
       overflow: hidden;
     }
-
     #message {
-      font-size: 4.5rem; /* Smaller size */
+      font-size: 4.5rem;
       text-align: center;
       opacity: 0;
       padding: 0 20px;
       text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
       margin-bottom: 40px;
     }
-
     @keyframes fadeInOut {
       0%   { opacity: 0; }
       10%  { opacity: 1; }
       90%  { opacity: 1; }
       100% { opacity: 0; }
     }
-
     .fade {
       animation-name: fadeInOut;
       animation-fill-mode: forwards;
       animation-timing-function: ease-in-out;
     }
-
-    /* Start Button Styling */
     #startButton {
-  font-size: 4.5rem; /* 3 times 1.5rem */
-  padding: 45px 90px; /* 3 times 15px 30px */
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid white;
-  border-radius: 50px;
-  color: white;
-  font-family: 'Shadows Into Light', cursive;
-  cursor: pointer;
-  transition: all 0.4s ease;
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
-  opacity: 1;
+      font-size: 4.5rem;
+      padding: 45px 90px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      border-radius: 50px;
+      color: white;
+      font-family: 'Shadows Into Light', cursive;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+      opacity: 1;
     }
-
     #startButton:hover {
       background: rgba(255, 255, 255, 0.3);
       transform: scale(1.05);
     }
-
     .fadeOut {
       opacity: 0;
       pointer-events: none;
@@ -77,18 +70,21 @@
 
 <script>
   const texts = [
-    "WOW!",
-    "I can't believe it!",
-    "Today...",
-    "This month!",
-    "It's a very special dayyy!",
-    "I hope you'll love this thing I made for you!",
-    "But before we start...",
-    "Enter a passcode first.",
-    "😉"
+    "Today",
+    "August 14, 2025",
+    "My first heartbreak",
+    "The saddest and hurtful day of my life.",
+    "The passcode is that date."
   ];
 
-  const durations = [2500, 3000, 2500, 3000, 5000, 5000, 4000, 4000, 3000];
+  // delays: short for single words, longer for emotional phrases
+  const durations = [
+    2500, // Today
+    3000, // August 14, 2025
+    3500, // My first heartbreak
+    5000, // The saddest and hurtful day...
+    4000  // The passcode is that date.
+  ];
 
   const messageEl = document.getElementById("message");
   const startBtn = document.getElementById("startButton");
@@ -97,9 +93,8 @@
   function showNextMessage() {
     if (index >= texts.length) {
       setTimeout(() => {
-        // ✅ Redirect to passcode.html when messages finish
         window.location.href = 'passcode.html';
-      }, 1500); // small delay before transitioning
+      }, 1500);
       return;
     }
 
@@ -120,7 +115,7 @@
     startBtn.classList.add("fadeOut");
     setTimeout(() => {
       startBtn.style.display = "none";
-      setTimeout(showNextMessage, 1500); // cooldown before text starts
+      setTimeout(showNextMessage, 1500);
     }, 400);
   });
 </script>
