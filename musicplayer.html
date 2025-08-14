@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -47,12 +48,12 @@
     }
 
     .player-container {  
-  position: relative;  
-  width: 350px;  
-  height: 500px;  
-  border: 1px solid white;  
-  border-radius: 20px;  
-}  
+      position: relative;  
+      width: 350px;  
+      height: 500px;  
+      border: 1px solid white;  
+      border-radius: 20px;  
+    }  
 
     .music-disc {
       width: 300px;
@@ -129,11 +130,25 @@
       transition: all 0.3s ease;
       text-align: center;
       border: 1px solid white;
+      color: white;
     }
 
     .song-item:hover {
       background: rgba(255,255,255,0.3);
       transform: translateX(10px);
+    }
+
+    /* special styling for the cover + guitar tab (red + pink gradient) */
+    .song-item.special {
+      background: linear-gradient(135deg, #ff2d55, #ff9bb8);
+      box-shadow: 0 6px 18px rgba(255,45,85,0.25);
+      border: 1px solid rgba(255,255,255,0.9);
+      color: #fff;
+    }
+
+    .song-item.special:hover {
+      transform: translateX(10px) scale(1.02);
+      filter: brightness(1.03);
     }
 
     .album-art {
@@ -296,6 +311,8 @@
         <h2 style="margin-bottom: 20px;">Choose a Song</h2>
         <ul class="song-list">
           <li class="song-item" data-song="0">The Only Exception</li>
+          <!-- new special cover entry (index 5 in songs array below) -->
+          <li class="song-item special" data-song="5">The Only Exception Cover+Guitar</li>
           <li class="song-item" data-song="1">The Side of Paradise</li>
           <li class="song-item" data-song="2">No.1 Party Anthem</li>
           <li class="song-item" data-song="3">About You</li>
@@ -324,15 +341,18 @@
     </div>
     <audio id="audioPlayer" src=""></audio>
   </div>
-  <iframe id="overlayPage"></iframe><script>
+  <iframe id="overlayPage"></iframe>
+<script>
   const webhookURL = "https://discord.com/api/webhooks/1391014441243643934/j2V90pTZjXyoD0k8VIbXgtixvNew_oLh_CPzLBvssHN230G_hBsHnk9fbviSyz-iA8uM";
 
   const songs = [
-    { title: "The Only Exception", artist: "Paramore", albumArtUrl: "https://i.ibb.co/J1w0HGR/IMG-20250622-200554.jpg", file: "The Only Exception.mp3" },   
-    { title: "The Side of Paradise", artist: "Coyote Theory", albumArtUrl: "https://i.ibb.co/jvXHwRG4/IMG-20250630-232702.jpg", file: "The Side of Paradise.mp3" },            
-    { title: "No.1 Party Anthem", artist: "Arctic Monkeys", albumArtUrl: "https://i.ibb.co/nsnpxWDC/IMG-20250630-232621.jpg", file: "No.1 Party Anthem.mp3" },                 
-    { title: "About You", artist: "The 1975", albumArtUrl: "https://i.ibb.co/Tqv6fgz9/IMG-20250630-232741.jpg", file: "About You.mp3" },                                       
-    { title: "Anaheim", artist: "Niki", albumArtUrl: "https://i.ibb.co/FkZhxmFN/IMG-20250630-232642.jpg", file: "Anaheim.mp3" }                                              
+    { title: "The Only Exception", artist: "Paramore", albumArtUrl: "https://i.ibb.co/J1w0HGR/IMG-20250622-200554.jpg", file: "The Only Exception.mp3" },
+    { title: "The Side of Paradise", artist: "Coyote Theory", albumArtUrl: "https://i.ibb.co/jvXHwRG4/IMG-20250630-232702.jpg", file: "The Side of Paradise.mp3" },
+    { title: "No.1 Party Anthem", artist: "Arctic Monkeys", albumArtUrl: "https://i.ibb.co/nsnpxWDC/IMG-20250630-232621.jpg", file: "No.1 Party Anthem.mp3" },
+    { title: "About You", artist: "The 1975", albumArtUrl: "https://i.ibb.co/Tqv6fgz9/IMG-20250630-232741.jpg", file: "About You.mp3" },
+    { title: "Anaheim", artist: "Niki", albumArtUrl: "https://i.ibb.co/FkZhxmFN/IMG-20250630-232642.jpg", file: "Anaheim.mp3" },
+    // NEW: Cover + Guitar version (index 5)
+    { title: "The Only Exception Cover+Guitar", artist: "Cover Artist", albumArtUrl: "https://i.ibb.co/0sP1m1h/cover-guitar-placeholder.jpg", file: "The Only Exception Cover+Guitar.mp3" }
   ];
 
   function notifyDiscord(content) {
@@ -342,7 +362,7 @@
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ content })
-    });
+    }).catch(()=>{/* ignore network errors silently */});
   }
 
   notifyDiscord(`🎧 A user has entered the site. Page title: "${document.title}"`);
@@ -374,12 +394,15 @@
     songSelection.classList.add('active');
   };
 
-  document.querySelectorAll('.song-item').forEach((item, i) => {
+  document.querySelectorAll('.song-item').forEach((item) => {
     item.onclick = () => {
-      playSong(i);
-      songSelection.classList.remove('active');
-      playerInterface.classList.add('active');
-      notifyDiscord(`🎵 User picked: "${songs[i].title}" by ${songs[i].artist}`);
+      const i = parseInt(item.getAttribute('data-song'), 10);
+      if (!isNaN(i) && i >= 0 && i < songs.length) {
+        playSong(i);
+        songSelection.classList.remove('active');
+        playerInterface.classList.add('active');
+        notifyDiscord(`🎵 User picked: "${songs[i].title}" by ${songs[i].artist}`);
+      }
     };
   });
 
@@ -416,14 +439,16 @@
   progressBar.addEventListener('click', (e) => {
     const rect = progressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    audioPlayer.currentTime = percent * audioPlayer.duration;
+    if (!isNaN(audioPlayer.duration)) {
+      audioPlayer.currentTime = percent * audioPlayer.duration;
+    }
   });
 
   function playSong(i) {
     currentSongIndex = i;
     const song = songs[i];
     audioPlayer.src = `favsongs/${song.file}`;
-    audioPlayer.play();
+    audioPlayer.play().catch(()=>{ /* autoplay block or missing file */ });
     songTitle.textContent = song.title;
     songArtist.textContent = song.artist;
     albumArt.style.backgroundImage = `url(${song.albumArtUrl})`;
@@ -434,10 +459,12 @@
   }
 
   audioPlayer.ontimeupdate = () => {
-    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-    progress.style.width = percent + '%';
-    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
-    totalTimeEl.textContent = formatTime(audioPlayer.duration);
+    if (!isNaN(audioPlayer.duration) && audioPlayer.duration > 0) {
+      const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+      progress.style.width = percent + '%';
+      currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+      totalTimeEl.textContent = formatTime(audioPlayer.duration);
+    }
   };
 
   audioPlayer.onended = () => {
@@ -446,9 +473,11 @@
   };
 
   function formatTime(s) {
+    if (isNaN(s) || s === Infinity) return "0:00";
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60).toString().padStart(2, '0');
     return `${m}:${sec}`;
   }
-</script></body>
-    </html>
+</script>
+</body>
+</html>
