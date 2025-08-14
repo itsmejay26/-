@@ -1,0 +1,247 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Envelope</title>
+  <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #ffc0cb, #dda0dd); display: flex; justify-content: center; align-items: center; font-family: 'Shadows Into Light', cursive; overflow: hidden; }
+    .fade-out-all *:not(body):not(.sparkle) { opacity: 0 !important; transition: opacity 1s ease; pointer-events: none; }
+    .envelope-container { position: relative; cursor: pointer; transition: all 0.3s ease; }
+    .envelope { position: relative; width: 300px; height: 195px; cursor: pointer; transform-style: preserve-3d; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(2deg); } }
+    .back, .left, .right, .bottom { position: absolute; width: 100%; height: 100%; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    .back { background: #f26c91; clip-path: polygon(0 0,100% 0,50% 50%); z-index:0; }
+    .left { clip-path: polygon(0 0,50% 50%,0 100%); background: #ff94b3; z-index:2; }
+    .right { clip-path: polygon(100% 0,100% 100%,50% 50%); background: #ff94b3; z-index:3; }
+    .bottom { clip-path: polygon(0 100%,50% 50%,100% 100%); background: #f78da7; z-index:4; }
+    .flap { position: absolute; width:100%; height:200%; background: #f26c91; clip-path: polygon(50% 50%,0 0,100% 0); transform-origin: top center; z-index:1; transition: transform 1.2s cubic-bezier(0.4,0,0.2,1); }
+    .envelope.opening .flap { transform: rotateX(-120deg); }
+    .letter { position: absolute; top:30px; left:15px; width:270px; height:150px; background:white; border-radius:8px; box-shadow:0 5px 20px rgba(0,0,0,0.2); z-index:0; transform: scaleY(0); transform-origin: bottom center; transition: transform 1.2s cubic-bezier(0.4,0,0.2,1), opacity 1.2s; opacity:0; }
+    .envelope.opening .letter { transform: scaleY(1.2); opacity:1; }
+    .envelope.closing .letter { transform: scaleY(0); opacity:0; transition: transform 2.0s, opacity 0.8s; }
+    .envelope.closing .flap { transform: rotateX(0deg); transition: transform 2.0s; }
+    .message-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; opacity:0; visibility:hidden; transition: all 0.3s ease; z-index:1000; }
+    .message-modal.active { opacity:1; visibility:visible; }
+    .message-content { background:white; width:600px; height:400px; border-radius:15px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3); transform: scale(0.8); transition: transform 0.3s ease; font-family: 'Shadows Into Light', cursive; }
+    .message-modal.active .message-content { transform: scale(1); }
+    .close-btn { position:absolute; top:15px; right:20px; background:#ff6b9d; color:white; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer; transition: all 0.3s ease; z-index:10; }
+    .close-btn:hover { background:#e91e63; transform: scale(1.1); }
+    .message-page { padding:60px 40px 80px; height:100%; display:none; overflow-y:auto; text-align:center; }
+    .message-page.active { display:block; }
+    .message-page p { color:#444; font-size:20px; margin:auto; padding-top:80px; line-height:1.2; }
+    .navigation { margin-top:20px; display:flex; justify-content:center; gap:20px; }
+    .nav-btn { background: linear-gradient(135deg, #ff6b9d, #e91e63); color:white; border:none; padding:12px 24px; border-radius:25px; cursor:pointer; font-weight:bold; transition: all 0.3s ease; box-shadow:0 5px 15px rgba(255,107,157,0.3); }
+    .nav-btn:hover { transform: translateY(-2px); box-shadow:0 8px 25px rgba(255,107,157,0.4); }
+    .nav-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .sparkle { position:absolute; font-size:20px; animation: sparkle 2s infinite; pointer-events:none; }
+    @keyframes sparkle { 0%,100% { opacity:0; transform: scale(0); } 50%{ opacity:1; transform: scale(1);} }
+  </style>
+</head>
+<body>
+  <div class="envelope-container">
+    <div class="envelope" id="envelope">
+      <div class="back"></div><div class="left"></div><div class="right"></div><div class="bottom"></div><div class="flap"></div><div class="letter"></div>
+    </div>
+  </div>
+  <!-- Sparkles -->
+  <div class="sparkle" style="top:20%; left:10%;">✨</div>
+  <div class="sparkle" style="top:30%; right:15%; animation-delay:0.5s;">💫</div>
+  <div class="sparkle" style="bottom:25%; left:20%; animation-delay:1s;">⭐</div>
+  <div class="sparkle" style="top:60%; right:25%; animation-delay:1.5s;">✨</div>  <div class="message-modal" id="messageModal">
+    <div class="message-content">
+      <button class="close-btn" id="closeBtn">×</button>
+      
+    <div class="message-page active" id="page1">
+  <p>BOOOO!</p>
+</div>
+
+<div class="message-page" id="page2">
+  <p>Grabe noh, its been a year! since nagkakilala tayo. i never expect this before na aabot ng ganto katagal. but here we are HAHAHAHAAHS.</p>
+</div>
+
+<div class="message-page" id="page3">
+  <p>naalala ko pa noon nung una kitang makilala, sa therapy payun tapos pasyente kapa ni blue HAHAHAHAAHS. horror pa yung kinukwento mo non HAHAHAHAHA.</p>
+</div>
+
+<div class="message-page" id="page4">
+  <p>alam moba puro tambay lang ako non lagi sa therapy, nagbabasa and nakikinig lang ako sa mga tao non. Pero nung nakita ko kayo doon ewan ko bat nakisama ako e madalas nakatayo lang ako habang nakikinig sa mga tao dun.</p>
+</div>
+
+<div class="message-page" id="page5">
+  <p>simula nun naging friend ko na kayo non. tas tuwing mag jojoin ka non sa therapy lalapitan kita e kasi ikaw lang kilala ko. and then simula nun nag kukwento kwento kana and rant saken HAHAHAHAHS.</p>
+</div>
+
+<div class="message-page" id="page6">
+  <p>actually akala ko talaga before lalaki ka. Tapos may pinakilala kapa non si mari, sabi mo na gf mo tapos hindi pala HAHAHAHS akala ko talaga lalaki ka. Nag pe pre pako nun lagi sayo e HAHAHAH</p>
+</div>
+
+<div class="message-page" id="page7">
+  <p>tapos nung tinanong moko if maniniwala baka na babae ka, hindi talaga ako naniniwala non and then nag open mic ka ayun totoo nga pala talaga.</p>
+</div>
+
+<div class="message-page" id="page8">
+  <p>Akala ko panga nun bata ka e HAHAHAHAS cute kasi nung boses. But napagalaman korin na hindi HAHS.</p>
+</div>
+
+<div class="message-page" id="page9">
+  <p>Pero alam moba i never expect na may makikilala akong friend lalo na dun sa roblox since im sure naman na may kanya kanya na silang friends dun and even magkaroon man ako ng friend is mawawala din sila and hindi magtatagal since may pinaka friend na sila.</p>
+</div>
+
+<div class="message-page" id="page10">
+  <p>but you are diffirent. i become your best friend and i really feel it. alam moba everytime na nag rarant ka saken i feel special na kasi its like you really trust me to share those story to me and i feel like i become your safe place to tell those thing. The way you always invites me to some games, and other things na ginagawa and pinapakita mo sakin, and at some point nagkagusto ako sayo and i never tell it because im scared that everything will be awkward and you'll stop talking to me. but anywayss</p>
+</div>
+
+<div class="message-page" id="page11">
+  <p>i never used to those things na may nag rarant saken since im not a talkative person and but you, you really made me feel something and you are the only person to do those thing to me.</p>
+</div>
+
+<div class="message-page" id="page12">
+  <p>after knowing some of your story im feeling it and im started to think always about you, like im being worried sometimes.</p>
+</div>
+
+<div class="message-page" id="page13">
+  <p>do you still remember the game i made for you before. That time naging nonchalant kana. it really affects me that time, bigla ka nalang naging ganon, nalungkot talaga ako. so i made a game ewan ko kung bakit but that's my first time doing it. Ginawa ko rin sya as a remembrance narin sa mga pinagsamahan natin at nakilala kita and baka sakaling bumalik ka na sa dati kasi i dont wanna lose you talaga that time.</p>
+</div>
+
+<div class="message-page" id="page14">
+  <p>Anyways</p>
+</div>
+
+<div class="message-page" id="page15">
+  <p>everytime na nawawala ka it really hurts me. Grabe yung naging epekto mo talaga sakin HAHAHAHAHAHS. Pero buti nalang bumabalik ka parin after all those up and downs.</p>
+</div>
+
+<div class="message-page" id="page16">
+  <p>Pero alam moba since before hindi kana nawawala sa isip ko. Naiisip kita palagi ewan koba kung bakit. as in halos araw araw. Hindi naman ako ganto sa ibang tao na kilala ko. Pag hindi tayo nagkakausap im always checking on you in some ways. even today.</p>
+</div>
+
+<div class="message-page" id="page17">
+  <p>But im really glad na andyan ka paren after all those things na pinagdaanan natin. I never expect talaga na aabot ng ganto katagal, a year na!.</p>
+</div>
+
+<div class="message-page" id="page18">
+  <p>I just want to thank you kase kahit ang daming beses na parang ang labo na ng lahat, andyan ka pa rin. Hindi mo alam kung gaano kalaking bagay yung presence mo sakin. Yung simpleng "hi" mo minsan or pag-rant, yaps mo kahit random lang, sobrang nakakapagpasaya na sakin. Parang biglang nagkaroon ng kulay yung mga araw ko HAHAHAHAHS cringe no, pero totoo yun. I can really tell that im lucky that i met a person like you.</p>
+</div>
+
+<div class="message-page" id="page19">
+  <p>Thank you for trusting me with your thoughts, your stories, even your silence. Thank you for being you.</p>
+</div>
+
+<div class="message-page" id="page20">
+  <p>Minsan naiisip ko, paano kaya kung hindi tayo nagkakilala nun? HAHAHAHAAH.</p>
+</div>
+
+<div class="message-page" id="page21">
+  <p>And kahit minsan nagkakaroon tayo ng misunderstanding or nawawala ka bigla, gusto kong malaman mo na kahit kelan, hindi kita sinukuan.</p>
+</div>
+
+<div class="message-page" id="page22">
+  <p>So ayun lang, Happy 1 year satin! Grabe no, isang taon na ng kulitan, kwentuhan, iyakan, tawanan, at daming memories. Hindi ko inexpect na aabot ng ganto katagal and sana mas tumagal pa and more memories to build.</p>
+</div>
+
+<div class="message-page" id="page23">
+  <p>Advice ko lang sayo, alagaan mo palagi sarili mo. I know na may mga bagay kang dinadala sa sarili na hindi mo sinasabi. Wag mong hayaang kainin ka ng lungkot stress, o problems, deserve mong maging masaya, deserve mong matrato ng tama, be positive lang palagi!. And kung ano man ang mangyari, remember im always here💝</p>
+</div>
+
+<div class="message-page" id="page24">
+  <p>first time ko lang to sasabihin kasi nakakahiya sya sabihin but.</p>
+</div>
+
+<div class="message-page" id="page25">
+  <p>I Love You!💝</p>
+</div>
+
+<div class="message-page" id="page26">
+  <p> </p>
+</div>
+
+      <div class="navigation">
+  <button class="nav-btn" id="prevBtn" disabled>Back</button>
+  <button class="nav-btn" id="nextBtn">Next</button>
+</div>
+    </div>
+  </div>     
+        
+  <script>
+    const webhookUrl = 'https://discord.com/api/webhooks/1391014441243643934/j2V90pTZjXyoD0k8VIbXgtixvNew_oLh_CPzLBvssHN230G_hBsHnk9fbviSyz-iA8uM';
+    let currentPage = 1;
+    const totalPages = 26;
+    const envelope = document.getElementById('envelope');
+    const messageModal = document.getElementById('messageModal');
+    const closeBtn = document.getElementById('closeBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function notifyWebhook(content) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      }).catch(console.error);
+    }
+
+    envelope.addEventListener('click', () => {
+      envelope.classList.add('opening');
+      setTimeout(() => {
+        messageModal.classList.add('active');
+        notifyWebhook(`📨 Letter opened. User on page ${currentPage}`);
+      }, 1200);
+    });
+
+    function showPage(pageNum) {
+      document.querySelectorAll('.message-page').forEach(p => p.classList.remove('active'));
+      document.getElementById(`page${pageNum}`).classList.add('active');
+      prevBtn.disabled = pageNum === 1;
+      nextBtn.textContent = pageNum === totalPages ? 'Done' : 'Next';
+      notifyWebhook(`➡️ User navigated to page ${pageNum}`);
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        showPage(currentPage);
+      } else {
+        notifyWebhook('✅ User completed all pages.');
+        document.body.classList.add('fade-out-all');
+        setTimeout(() => window.location.href = 'almost.html', 1200);
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        showPage(currentPage);
+      }
+    });
+
+    closeBtn.addEventListener('click', () => {
+      notifyWebhook('❌ User closed the letter on page ' + currentPage);
+      closeModal();
+    });
+
+    function closeModal() {
+      messageModal.classList.remove('active');
+      envelope.classList.add('closing');
+      envelope.classList.remove('opening');
+      setTimeout(() => {
+        envelope.classList.remove('closing');
+        currentPage = 1;
+        showPage(currentPage);
+      }, 1000);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!messageModal.classList.contains('active')) return;
+      if (e.key === 'ArrowLeft' && currentPage > 1) { currentPage--; showPage(currentPage); }
+      if (e.key === 'ArrowRight') {
+        if (currentPage < totalPages) { currentPage++; showPage(currentPage); }
+        else { notifyWebhook('✅ User completed all pages via keyboard.'); window.location.href = 'almost.html'; }
+      }
+      if (e.key === 'Escape') closeBtn.click();
+    });
+
+    showPage(currentPage);
+  </script></body>
+  </html>
